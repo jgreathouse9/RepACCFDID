@@ -23,10 +23,6 @@ g treat = cond(id==1 & time2 >=36,1,0)
 drop time
 
 rename (time c) (time import)
-//replace import = import * 100
-cls
-//rcm import, trp(36) tru(1) me(forward) criterion(aic)
-
 
 qui fdid import, tr(treat) unitnames(unit)
 

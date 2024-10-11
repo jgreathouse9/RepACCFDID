@@ -7,7 +7,7 @@ clear *
 
 cls // clears the screen
 
-import delimited "C:\The Shop\china_import_final.csv", clear
+import delimited "china_import_final.csv", clear
 // imports data that was created in R
 
 rename (treated v1) (c0 time)

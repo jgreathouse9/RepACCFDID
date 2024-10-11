@@ -23,7 +23,17 @@ g treat = cond(id==1 & time2 >=36,1,0)
 drop time
 
 rename (time c) (time import)
+//replace import = import * 100
+cls
 
+rcm import, trperiod(36) trunit(1) method(forward)  frame(fsframe) criterion(mbic)
+// rcm import, trperiod(36) trunit(1) method(forward)  frame(fsframe)
+frame fsframe {
+
+keep time pred·import·1
+
+rename pred·import·1 cf_fspda
+}
 qui fdid import, tr(treat) unitnames(unit)
 
 // Controls FDID Selects: Unit 61, Unit 83, Unit 27, Unit 59, Unit 46, Unit 51,
@@ -50,25 +60,34 @@ qui fdid import, tr(treat) unitnames(unit)
 mkf newframe
 cwf newframe
 svmat e(series), names(col)
-replace cf1 = cf1*100
-replace import1 = import1*100
 
+loc interdate: di tm(2013m1)
 
-loc cfcol2 blue
-loc cfcol black
+g monthtime= `interdate' + eventtime1
 
-twoway (connected import1 time, ///
-	mcolor(red) msize(small) msymbol(smcircle) lcolor(red) lwidth(medium)) ///
-(connected cf1 time if time < 36, ///
-	mcolor(`cfcol') msize(medsmall) msymbol(smtriangle) ///
-	lcolor(`cfcol') lpattern(shortdash) lwidth(medium)) ///
-(connected cf1 time if time >=36, ///
-	mcolor(`cfcol2') msymbol(smsquare) ///
-	lcolor(`cfcol2') lpattern(shortdash) lwidth(medium)), ///
-	note("Jan of 2013 is time point 36.") ///
-	legend(order(1 "Observation" 2 "In-Sample Fit" 3 "Counterfactual") ///
-	ring(0) pos(7) region(fcolor(none))) yti("Import Growth Rate (%)") ///
-	ylabel(#5, grid glwidth(vthin) glcolor(gs4%20) glpattern(solid)) ///
-	xline(36, lwidth(medium) lpattern(solid) lcolor(black)) ///
-	xlabel(#10, grid glwidth(vthin) glcolor(gs4%20) glpattern(solid)) ///
-	xti("Time")   //plotregion(fcolor(gs6) lcolor(gs6) ifcolor(gs6) ilcolor(gs6))
+tsset monthtime, m
+
+qui frlink 1:1 time, frame(fsframe)
+
+qui frget cf_fspda, from(fsframe)
+drop fsframe
+cls
+loc interdate: di tm(2013m1)
+
+twoway (tsline import1 , recast(connected) ///
+	mcolor(red) msymbol(smcircle) lcolor(red) lwidth(medium)) ///
+(connected cf1 monthtime, ///
+	mcolor(black) msize(medsmall) msymbol(smtriangle) ///
+	lcolor(black) lpattern(shortdash) lwidth(thin)) ///
+(connected cf_fspda monthtime, ///
+	mcolor("0 173 255") msymbol(smsquare) ///
+	lcolor("0 173 255") lpattern(shortdash) lwidth(thin)), ///
+	legend(order(1 "Observation" 2 "fDID" 3 "RCM") ///
+	pos(6) region(fcolor(none)) rows(1)) yti("Import Growth Rate (%)") ///
+	ylabel(-.6(.2).6, grid glwidth(vthin) glcolor(gs11%10) glpattern(solid)) ///
+	xline(`interdate', lwidth(medium) lpattern(solid) lcolor(black)) ///
+	xti("Year") xsize(9.5) ysize(6) ///
+	plotregion(margin(zero)) tmtick(##1) ///
+	tlabel(#4,  angle(forty_five) format(%-tmNN/CCYY) grid glwidth(vthin) glcolor(gs11%10) glpattern(solid))
+	
+graph export "C:\The Shop\FDIDPlotWatch.eps", as(eps) name("Graph") preview(on) replace

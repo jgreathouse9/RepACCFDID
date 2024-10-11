@@ -139,4 +139,4 @@ twoway (tsline import1 , recast(connected) ///
 	plotregion(margin(zero)) tmtick(##1) ///
 	tlabel(#4,  angle(forty_five) format(%-tmNN/CCYY) grid glwidth(vthin) glcolor(gs11%10) glpattern(solid))
 	
-graph export "C:\The Shop\FDIDPlotWatch.eps", as(eps) name("Graph") preview(on) replace
+graph export "FDIDPlotWatch.eps", as(eps) name("Graph") preview(on) replace
